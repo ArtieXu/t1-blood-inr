@@ -1,0 +1,56 @@
+log directory: /home/t1user/runs/smoke/log/smoke_260820_033601
+
+contract actually used
+  script                   train_inr_unsup_spiral.py
+  epochs                   32
+  seed                     0
+  frames                   50
+  coils                    28
+  grid_size                216
+  kb_grid_size             324
+  dc_form                  feng_rel
+  dc_weighting_in_loss     uniform
+  dcf_in_backward          False
+  dcf_norm                 mean
+  time_coords              ti_span
+  temporal_model           flexible_3d_hash
+  data_path                /home/t1user/data/gassp1_data.mat
+  scale                    329.8946533203125
+  holdout_every            0
+  ti_ms                    63 .. 9863  (contract: 63 + 200*n)
+
+loss.csv: 32 rows
+  all values finite (holdout columns are nan by design: --holdout_every 0)
+
+trend (first 8 vs last 8 steps)
+  dc            1.300788e+04 -> 4.025243e+01   (down 99.7%)
+  dc_uniform_rel 9.999940e-01 -> 4.487320e-01
+  total         6.842540e+04 -> 3.230456e+01
+  eps_frac      1.0000 -> 0.4568   (fraction of predicted samples under the relative-L2 epsilon)
+
+timing
+  step 1 (incl. CUDA/tcnn warm-up)  4.747 s
+  steady-state mean                 3.656 s/step
+  steady-state max                  5.774 s/step
+  total train time                  118.1 s
+  extrapolated 1600 steps           97.5 min (schedule differs; timing only)
+
+memory
+  peak torch-allocated VRAM         4.326 GiB
+  NOTE tiny-cuda-nn allocates outside the torch caching allocator; compare nvidia_smi_after.txt for the true device total.
+
+recon_final.mat
+  img_inr shape                     (50, 1, 216, 216) complex64
+  finite                            True
+  max |img_inr|                     1.913481e-01
+  scale (physical units factor)     3.298947e+02
+  OK   final_state.pt  (201199813 bytes)
+  OK   final_residual_by_frame.csv  (3754 bytes)
+  OK   recon_final_abs.png  (1617460 bytes)
+
+====================================================================
+GATE B PASSED -- the 5070 stack runs, outputs are finite and correctly shaped.
+This is a RUNTIME result only. It is not convergence, not image quality,
+and not a scientific result. The stop gate RANK5_MODEL_GAP_DETECTED is
+unchanged: no measured-data tuning until a revised prior passes an
+independent image gate.

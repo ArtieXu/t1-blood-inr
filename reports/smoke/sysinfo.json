@@ -1,0 +1,65 @@
+{
+  "recorded_utc": "2026-08-20T10:38:23.203614+00:00",
+  "host": {
+    "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "machine": "x86_64",
+    "python": "3.10.12",
+    "python_executable": "/home/t1user/.venvs/t1_5070/bin/python3",
+    "virtual_env": "/home/t1user/.venvs/t1_5070",
+    "is_wsl": true
+  },
+  "env_vars": {
+    "CUDA_HOME": "/usr/local/cuda-12.8",
+    "CUDA_VISIBLE_DEVICES": null,
+    "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:False",
+    "LD_LIBRARY_PATH": "/usr/lib/wsl/lib:/usr/local/cuda-12.8/lib64",
+    "WANDB_MODE": "disabled",
+    "WANDB_DISABLED": "true"
+  },
+  "nvidia_smi": "NVIDIA GeForce RTX 5070, 610.88, 12227 MiB, 12.0",
+  "nvcc": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Fri_Feb_21_20:23:50_PST_2025\nCuda compilation tools, release 12.8, V12.8.93\nBuild cuda_12.8.r12.8/compiler.35583870_0",
+  "packages": {
+    "torch": "2.7.1+cu128",
+    "torchvision": "0.22.1+cu128",
+    "torchkbnufft": "1.5.2",
+    "tinycudann": "2.0",
+    "numpy": "2.2.6",
+    "scipy": "1.15.3",
+    "h5py": "3.16.0",
+    "matplotlib": "3.10.9",
+    "imageio": "2.37.4",
+    "skimage": "0.25.2",
+    "tqdm": "4.70.0",
+    "pandas": "2.3.3"
+  },
+  "optional_packages": {
+    "wandb": "0.28.2"
+  },
+  "tiny_cuda_nn": {
+    "version": "2.0",
+    "module_file": "/home/t1user/.venvs/t1_5070/lib/python3.10/site-packages/tinycudann/__init__.py",
+    "package_dir": "/home/t1user/.venvs/t1_5070/lib/python3.10/site-packages/tinycudann",
+    "dist_metadata": {
+      "Name": "tinycudann",
+      "Version": "2.0",
+      "Home-page": "https://github.com/nvlabs/tiny-cuda-nn"
+    },
+    "expected_commit_from_MIGRATION_5070_md": "749dd70c5afc5a9dadb85e5652ed65d55e0ba187",
+    "note": "tinycudann does not expose its source commit at runtime. Record the commit you actually built from by hand; a different commit defines a new runtime branch and invalidates cross-run comparison."
+  },
+  "torch": {
+    "version": "2.7.1+cu128",
+    "cuda_runtime": "12.8",
+    "cudnn": 90701,
+    "cuda_available": true
+  },
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 5070",
+    "capability": [
+      12,
+      0
+    ],
+    "total_memory_gib": 11.94,
+    "multi_processor_count": 48
+  }
+}
