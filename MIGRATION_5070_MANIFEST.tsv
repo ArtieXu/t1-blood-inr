@@ -1,0 +1,24 @@
+required	location	role	path	bytes	sha256	source_of_truth	remote_url
+yes	local	legacy overview	README.md	3455	838ddbd0556bb7f730f84186797c7137186ee892ec0674e14013fe425b7d27ec	old host	
+yes	local	operator parity handover	HANDOVER.md	15481	9cf26d80cc2e92bb11c0244dc8ad4bbde061e1898fb7adbecef271bac111c1f6	old host	
+yes	local	project index	PROJECT_INDEX.md	3362	fb3ffbde1420842ebfff88b743e47dc4a337f49728ea059c8fa79b4aab4204f7	old host	
+yes	local	coefficient-domain plan	PROGRESS_AND_OUTLOOK_20260811.md	21645	946b81504d57f2dc7b5d98f5f3b8d9f14868a78103252f9efd5151767102534c	old host	
+yes	local	INR model	model.py	9253	ae365ce702c203acc7029c14465b6c5908ab4ef572e6b786697f5fe170361f37	old host	
+yes	local	loss and metric helpers	utils.py	9100	518aba5dabd344d656224b2a79b925e1b363f31dfd6e921d00cd6ccac8b11b8c	old host	
+yes	local	GASSP data loader	load_spiral.py	6837	d1deaac7f33af65d4823730e5e327a51afa436b3915cc04d69c5fb4ac2dce807	old host	
+yes	local	spiral NUFFT operator	spiral_nufft.py	4112	523102563ffd4ac9d9638d282ba460e5a67e058664d2a26ccbc8ef8593b520d1	old host	
+yes	local	target-free INR trainer	train_inr_unsup_spiral.py	28393	aa1e93f759ada5472d8c6e7b285849c9913e5b5297da82458192ebf1d52210f4	old host	
+yes	local	matched MATLAB evaluator	evaluate_inr50_candidates.m	4880	d326ec0c378ef1dd0444542e7192d37958d46fcdef1d1dc83f294ce881cf6320	old host	
+yes	local	exact synthetic gate source	notebooks/current/run_coeff_subspace_exact_gate.ipynb	31258	df5e71a0438ba6df13121d9110c1683559d13622702f53f93f3396dbca1494f5	old host	
+yes	local	P2 retrospective notebook source	notebooks/current/run_p2_retrospective_t1_ablation.ipynb	57811	b1728c47fc206390d97f8fd9a2e5a9f3ab4900e5b576bdc7fa379098cf917cdb	old host	https://drive.google.com/file/d/1ivaJCyBlHMy19_E9zwMEhGzfJ4KFVhJU/view
+yes	local	P2 notebook generator	notebooks/current/build_p2_retrospective_t1_ablation_notebook.py	49132	0c5dbda9954c82aebbdc6256bbdad69c770e5717a920d47b0a1291f95d0fae49	old host	
+yes	local	50-frame measured GASSP input	gassp1_data.mat	95528816	59f6904f3ba3ea38301e40413f507fa8bb7b160c6f19ad96db1a5e9c1936232a	old host	
+yes	local	CG handoff image	cg_predeblur.mat	18662784	f74efcb0d7361b512419552c47d2c033e2493dc8f5b1d106a0681c036e48150d	old host	
+yes	local	P2 pre-B0 synthesis target	results/full_spiral_preb0_target.mat	17236571	442450e892592861fb799414cd4a68fcd81b3324bc22564046dcfcc97b8d56e5	old host	
+yes	local	fully sampled reference	results/full_spiral_reference.mat	72542651	718fd75cc399fd06c70ebc7f4f21fa083fca99bedc1f3e1b7989a8fa42a16694	old host	
+yes	local	shared IJV curve and fit	results/full_spiral_shared_curve.mat	2490	89019fc543ca611c22bcb1c63dca5ed0fe52129f510df3511beb86a7fca5cd7b	old host	
+yes	local	shared IJV mask	results/full_spiral_shared_mask.mat	12361435	ac61dbbdad06b3ca5322b11e20d79b7c71a53c481b69f8e1f8d171f2be7ccedb	old host	
+yes	drive	latest executed P2 result folder	20260814_P2_fullref_T1_vs_noT1_DCF_v1			Google Drive	https://drive.google.com/drive/folders/1JqNUB2-tIH5UK01WJnFAWCl11rbybtb6
+yes	drive	P2 summary CSV	P2_summary.csv			Google Drive	https://drive.google.com/file/d/12WkJuc52QwFfzlpjhMyG_SNKdGyWBYDW/view
+yes	drive	P2 decision JSON	P2_decision.json			Google Drive	https://drive.google.com/file/d/10N5LLlA2JuSaQnVsOQsIYjAMxvbUjVHe/view
+no	drive	P2 visual comparison	P2_comparison.gif			Google Drive	https://drive.google.com/file/d/1_-FZ1IznL5S-Go8eIUCNFfTGMh9xtxDD/view
