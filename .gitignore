@@ -67,3 +67,7 @@ venv/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# 本机专属，不入库
+.gitignore.bak
+tools/.upstream
