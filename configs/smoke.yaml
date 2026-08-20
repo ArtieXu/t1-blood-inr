@@ -1,0 +1,8 @@
+# 32 步冒烟：只验证「跑得通」，不是科学结果
+name: smoke
+epochs: 32
+seed: 0
+kb_grid_size: 324          # 与两个 notebook 一致；见 docs/BLOCKERS_20260819.md P1
+summary_epoch: 16
+ckpt_every: 0              # 太短，不值得存续跑点
+extra: []

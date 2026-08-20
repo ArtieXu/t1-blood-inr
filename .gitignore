@@ -71,3 +71,6 @@ desktop.ini
 # 本机专属，不入库
 .gitignore.bak
 tools/.upstream
+
+# 实验产物（大文件）不入库；文本摘要走 reports/，由 tools/publish.sh 生成
+runs/

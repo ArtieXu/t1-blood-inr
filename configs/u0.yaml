@@ -1,0 +1,8 @@
+# U0：feng_rel + uniform（脚本自带默认），DCF 完全不参与
+name: u0_1600
+epochs: 1600
+seed: 0
+kb_grid_size: 324
+summary_epoch: 100
+ckpt_every: 50             # 约每 3 分钟一个续跑点
+extra: ["--dc_form", "feng_rel", "--dc_weighting", "uniform"]

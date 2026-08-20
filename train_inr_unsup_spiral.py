@@ -81,6 +81,12 @@ parser.add_argument('--holdout_offset', type=int, default=0,
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--shared_init_path', type=str, default=None,
                     help='create or load one initial network state shared by controlled arms')
+parser.add_argument('--ckpt_every', type=int, default=0,
+                    help='periodically save a resumable checkpoint every N steps; '
+                         '0 disables it and reproduces the pre-resume behaviour exactly')
+parser.add_argument('--resume', type=str, default=None,
+                    help='path to an existing ./log/<tag>_<ts> directory; continues that run '
+                         'in place from its ckpt.pt instead of starting a new one')
 parser.add_argument('--tag', type=str, default='inr_unsup')
 parser.add_argument('--wandb', action='store_true', help='mirror loss.csv and run_info to Weights & Biases')
 parser.add_argument('--wandb_project', type=str, default='t1-blood-inr')
@@ -408,8 +414,66 @@ if args.shared_init_path is not None:
 ts = time_coords(frames, args.time_coords, N)
 pos = inr.build_pos(N, frames, time_coords=ts)
 
-log_path = './log/{}_{}'.format(args.tag, datetime.datetime.now().strftime('%y%m%d_%H%M%S'))
-path_checker(log_path)
+start_epoch = 0
+resume_time_usage = 0.0
+if args.resume:
+    log_path = args.resume if os.path.isabs(args.resume) else os.path.abspath(args.resume)
+    ckpt_path = os.path.join(log_path, 'ckpt.pt')
+    if not os.path.isfile(ckpt_path):
+        raise FileNotFoundError('no ckpt.pt in {}'.format(log_path))
+    ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
+    if ckpt.get('architecture') != architecture:
+        raise ValueError('checkpoint architecture does not match this run')
+    inr.encoding.load_state_dict(ckpt['encoding'])
+    inr.model.load_state_dict(ckpt['model'])
+    inr.optimizer.load_state_dict(ckpt['optimizer'])
+    inr.scheduler.load_state_dict(ckpt['scheduler'])
+    start_epoch = int(ckpt['epoch'])
+    resume_time_usage = float(ckpt.get('time_usage', 0.0))
+    # 恢复 RNG 状态，续跑才和不中断的一次跑等价
+    random.setstate(ckpt['rng_python'])
+    np.random.set_state(ckpt['rng_numpy'])
+    torch.set_rng_state(ckpt['rng_torch'].cpu())
+    if torch.cuda.is_available() and ckpt.get('rng_cuda') is not None:
+        torch.cuda.set_rng_state_all([t.cpu() for t in ckpt['rng_cuda']])
+    # 崩溃时 loss.csv 往往比 ckpt 更靠前（ckpt 是周期性写的），
+    # 那些多出来的行对应的权重已经丢了。直接追加会产生重复且不连续的曲线，
+    # 所以先把 loss.csv 截断到 checkpoint 的步数。
+    _csv = os.path.join(log_path, 'loss.csv')
+    if os.path.isfile(_csv):
+        with open(_csv) as _fh:
+            _lines = _fh.readlines()
+        _head, _rows = _lines[:1], _lines[1:]
+        _keep = [r for r in _rows if r.split(',')[0].isdigit() and int(r.split(',')[0]) <= start_epoch]
+        if len(_keep) != len(_rows):
+            print('truncating loss.csv: {} -> {} rows (checkpoint is at step {})'.format(
+                len(_rows), len(_keep), start_epoch))
+            with open(_csv, 'w') as _fh:
+                _fh.writelines(_head + _keep)
+    print('resumed {} at step {}'.format(log_path, start_epoch))
+else:
+    log_path = './log/{}_{}'.format(args.tag, datetime.datetime.now().strftime('%y%m%d_%H%M%S'))
+    path_checker(log_path)
+
+
+def save_ckpt(epoch, time_usage):
+    """原子写：先写临时文件再 rename，中途断电不会留下半个损坏的 ckpt。"""
+    tmp = os.path.join(log_path, 'ckpt.pt.tmp')
+    torch.save({
+        'encoding': inr.encoding.state_dict(),
+        'model': inr.model.state_dict(),
+        'optimizer': inr.optimizer.state_dict(),
+        'scheduler': inr.scheduler.state_dict(),
+        'epoch': epoch,
+        'time_usage': time_usage,
+        'architecture': architecture,
+        'params': params,
+        'rng_python': random.getstate(),
+        'rng_numpy': np.random.get_state(),
+        'rng_torch': torch.get_rng_state(),
+        'rng_cuda': torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
+    }, tmp)
+    os.replace(tmp, os.path.join(log_path, 'ckpt.pt'))
 
 n_edge = max(1, base_op.spoke_length // 10)
 run_info = {
@@ -467,8 +531,11 @@ run_info = {
     'shared_init_action': shared_init_action,
     'shared_init_sha256': shared_init_sha256,
     'data_path': os.path.abspath(data_path),
+    'ckpt_every': args.ckpt_every,
+    'resumed_from_step': start_epoch if args.resume else None,
 }
-with open(os.path.join(log_path, 'run_info.json'), 'w') as f:
+with open(os.path.join(log_path,
+          'run_info_resume_{}.json'.format(start_epoch) if args.resume else 'run_info.json'), 'w') as f:
     json.dump(run_info, f, indent=2)
 print(json.dumps(run_info, indent=2))
 
@@ -487,12 +554,16 @@ def gpu_peak_gb():
 
 
 loss_csv = os.path.join(log_path, 'loss.csv')
-with open(loss_csv, 'w') as f:
-    f.write('epoch,total,dc,tv,stv,lowrank,lr,time_s,'
-            'dc_uniform_rel,dc_dcf_rel,dc_center_rel,dc_outer_rel,eps_frac,gpu_peak_gb,'
-            'dc_train_uniform_rel,dc_holdout_uniform_rel,dc_train_dcf_rel,dc_holdout_dcf_rel\n')
-    time_usage = 0.0
-    loop = tqdm(range(args.epochs), total=args.epochs, leave=True)
+# 续跑时以追加方式打开，且不重写表头 —— 一次实验只有一份连续的 loss.csv
+_append = bool(args.resume) and os.path.isfile(loss_csv)
+with open(loss_csv, 'a' if _append else 'w') as f:
+    if not _append:
+        f.write('epoch,total,dc,tv,stv,lowrank,lr,time_s,'
+                'dc_uniform_rel,dc_dcf_rel,dc_center_rel,dc_outer_rel,eps_frac,gpu_peak_gb,'
+                'dc_train_uniform_rel,dc_holdout_uniform_rel,dc_train_dcf_rel,dc_holdout_dcf_rel\n')
+    time_usage = resume_time_usage
+    loop = tqdm(range(start_epoch, args.epochs), total=args.epochs - start_epoch,
+                initial=0, leave=True)
     for e in loop:
         intensity, dt = inr.train(pos, kdata, e)
         time_usage += dt
@@ -551,6 +622,10 @@ with open(loss_csv, 'w') as f:
                 'time_s': time_usage,
             }, step=e + 1)
 
+        if args.ckpt_every and (e + 1) % args.ckpt_every == 0 and (e + 1) < args.epochs:
+            f.flush()
+            save_ckpt(e + 1, time_usage)
+
         if (e + 1) % args.summary_epoch == 0:
             with torch.no_grad():
                 save_img = render(inr, pos, e, use_c2f_mask=args.checkpoint_active_levels)
@@ -598,6 +673,12 @@ with torch.no_grad():
             f.write('{},{},{},{:.8e},{:.8e},{:.8e},{:.8e}\n'.format(
                 i, TI_START_MS + 200 * i, split, uniform_rel.item(), dcf_rel.item(),
                 center_rel.item(), outer_rel.item()))
+
+# 正常跑完就把续跑点删掉，免得下次 --resume 误接一个已经完成的实验
+if args.ckpt_every:
+    for _p in (os.path.join(log_path, 'ckpt.pt'), os.path.join(log_path, 'ckpt.pt.tmp')):
+        if os.path.isfile(_p):
+            os.remove(_p)
 
 print('log:', log_path)
 print('peak GPU memory (GB): {:.3f}'.format(gpu_peak_gb()))

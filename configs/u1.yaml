@@ -1,0 +1,8 @@
+# U1：DCF 作为 backward 里的预条件子（INMR 的放法）
+name: u1_1600
+epochs: 1600
+seed: 0
+kb_grid_size: 324
+summary_epoch: 100
+ckpt_every: 50             # 约每 3 分钟一个续跑点
+extra: ["--dc_form", "feng_rel", "--dc_weighting", "uniform", "--dcf_backward"]

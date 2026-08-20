@@ -1,0 +1,8 @@
+# U2：DCF 进目标函数
+name: u2_1600
+epochs: 1600
+seed: 0
+kb_grid_size: 324
+summary_epoch: 100
+ckpt_every: 50             # 约每 3 分钟一个续跑点
+extra: ["--dc_form", "global_rel", "--dc_weighting", "dcf"]
